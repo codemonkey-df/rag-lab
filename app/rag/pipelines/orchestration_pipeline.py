@@ -99,13 +99,21 @@ class OrchestrationPipeline:
                     chunk_overlap=chunk_overlap,
                 )
 
-            # Execute orchestration pipeline
-            result = await orchestrator.process(
-                question=query,
-                top_k=top_k,
-                temperature=kwargs.get("temperature", 0.7),
-                user_context=kwargs.get("user_context"),
-            )
+            # Execute orchestration pipeline with technique-specific parameters
+            if technique == RAGTechnique.ADAPTIVE_RETRIEVAL:
+                # AdaptiveRetrieval uses 'query' not 'question', and accepts temperature/user_context
+                result = await orchestrator.process(
+                    query=query,
+                    top_k=top_k,
+                    temperature=kwargs.get("temperature", 0.7),
+                    user_context=kwargs.get("user_context"),
+                )
+            else:
+                # SelfRAG and CRAG only accept 'question' and 'top_k'
+                result = await orchestrator.process(
+                    question=query,
+                    top_k=top_k,
+                )
 
             logger.info(f"Orchestration technique {technique} completed successfully")
             return result
