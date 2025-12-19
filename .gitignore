@@ -1,0 +1,38 @@
+ Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Project specific
+playground.db
+chromadb/
+uploads/
+storage/
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# UV
+.uv/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+

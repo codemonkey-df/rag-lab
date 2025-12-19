@@ -1,0 +1,272 @@
+Checking server connection to http://localhost:8000...
+✅ Server connection OK
+
+Uploading document: test.pdf...
+✅ Document uploaded (ID: dbf4d395-9507-413d-879a-ec27e43e6c11)
+   Session ID: 64f1b841-e548-454b-93b8-ea34d4c07880
+
+Running warmup query...
+✅ Warmup completed (5239ms)
+
+
+Testing 21 technique combinations...
+
+[1/21] Testing: basic_rag... ✅ (4916ms, 5 chunks)
+[2/21] Testing: basic_rag + hyde... ✅ (5810ms, 5 chunks)
+[3/21] Testing: basic_rag + reranking... ✅ (7865ms, 5 chunks)
+[4/21] Testing: basic_rag + contextual_compression... ✅ (15426ms, 5 chunks)
+[5/21] Testing: basic_rag + hyde + reranking... ✅ (9765ms, 5 chunks)
+[6/21] Testing: basic_rag + hyde + contextual_compression... ✅ (15265ms, 5 chunks)
+[7/21] Testing: basic_rag + reranking + contextual_compression... ✅ (18463ms, 5 chunks)
+[8/21] Testing: basic_rag + hyde + reranking + contextual_compression... ✅ (20942ms, 5 chunks)
+[9/21] Testing: fusion_retrieval... ✅ (3896ms, 5 chunks)
+[10/21] Testing: fusion_retrieval + hyde... ✅ (5277ms, 5 chunks)
+[11/21] Testing: fusion_retrieval + reranking... ✅ (6306ms, 5 chunks)
+[12/21] Testing: fusion_retrieval + contextual_compression... ✅ (16766ms, 5 chunks)
+[13/21] Testing: fusion_retrieval + hyde + reranking... ✅ (10273ms, 5 chunks)
+[14/21] Testing: fusion_retrieval + hyde + contextual_compression... ✅ (12506ms, 5 chunks)
+[15/21] Testing: fusion_retrieval + reranking + contextual_compression... ✅ (17911ms, 5 chunks)
+[16/21] Testing: fusion_retrieval + hyde + reranking + contextual_compression... ✅ (17663ms, 5 chunks)
+[17/21] Testing: self_rag... ✅ (6ms, 0 chunks)
+[18/21] Testing: self_rag + fusion_retrieval... ✅ (4ms, 0 chunks)
+[19/21] Testing: crag... ✅ (2ms, 0 chunks)
+[20/21] Testing: crag + fusion_retrieval... ✅ (1ms, 0 chunks)
+[21/21] Testing: adaptive_retrieval... ✅ (4ms, 0 chunks)
+
+================================================================================
+RAG Technique Combination Test Results
+================================================================================
+
+Document: test.pdf
+Query: "What are Tools for Audio Data Anonymization"
+Server: http://localhost:8000
+
+┌────────────────────────────────────────────────────────────┬────────┬────────────┬────────┐
+│ Technique Combination                                      │ Status │ Latency    │ Chunks │
+├────────────────────────────────────────────────────────────┼────────┼────────────┼────────┤
+│ basic_rag                                                  │ ✅      │ 4916ms     │ 5      │
+│ basic_rag + hyde                                           │ ✅      │ 5810ms     │ 5      │
+│ basic_rag + reranking                                      │ ✅      │ 7865ms     │ 5      │
+│ basic_rag + contextual_compression                         │ ✅      │ 15426ms    │ 5      │
+│ basic_rag + hyde + reranking                               │ ✅      │ 9765ms     │ 5      │
+│ basic_rag + hyde + contextual_compression                  │ ✅      │ 15265ms    │ 5      │
+│ basic_rag + reranking + contextual_compression             │ ✅      │ 18463ms    │ 5      │
+│ basic_rag + hyde + reranking + contextual_compression      │ ✅      │ 20942ms    │ 5      │
+│ fusion_retrieval                                           │ ✅      │ 3896ms     │ 5      │
+│ fusion_retrieval + hyde                                    │ ✅      │ 5277ms     │ 5      │
+│ fusion_retrieval + reranking                               │ ✅      │ 6306ms     │ 5      │
+│ fusion_retrieval + contextual_compression                  │ ✅      │ 16766ms    │ 5      │
+│ fusion_retrieval + hyde + reranking                        │ ✅      │ 10273ms    │ 5      │
+│ fusion_retrieval + hyde + contextual_compression           │ ✅      │ 12506ms    │ 5      │
+│ fusion_retrieval + reranking + contextual_compression      │ ✅      │ 17911ms    │ 5      │
+│ fusion_retrieval + hyde + reranking + contextual_compressi │ ✅      │ 17663ms    │ 5      │
+│ self_rag                                                   │ ✅      │ 6ms        │ 0      │
+│ self_rag + fusion_retrieval                                │ ✅      │ 4ms        │ 0      │
+│ crag                                                       │ ✅      │ 2ms        │ 0      │
+│ crag + fusion_retrieval                                    │ ✅      │ 1ms        │ 0      │
+│ adaptive_retrieval                                         │ ✅      │ 4ms        │ 0      │
+└────────────────────────────────────────────────────────────┴────────┴────────────┴────────┘
+
+================================================================================
+Detailed Results
+================================================================================
+
+1. basic_rag
+   Response: **Narzędzia do anonimizacji danych audio** (z podanych stron kontekstu):
+
+| Narzędzie | Kluczowe funkcje | Zgodność z regulacjami |
+|-----------|-----------------|------------------------|
+| **Private...
+   Latency: 4916ms
+   Chunks: 5
+   Result ID: 895077a2-5b81-4b70-aa62-c99373db7df5
+
+2. basic_rag + hyde
+   Response: **Tools for audio data anonymization**
+
+| Tool | Key features (as described in the context) | Relevant page |
+|------|--------------------------------------------|---------------|
+| **Microsoft Presid...
+   Latency: 5810ms
+   Chunks: 5
+   Result ID: 3d10322f-efc3-4aa0-bc4d-c511f677c707
+
+3. basic_rag + reranking
+   Response: **Tools for Audio Data Anonymization**
+
+| Tool | Main Functionality | Key Features | Source |
+|------|--------------------|--------------|--------|
+| **PyAnnote** | Speaker diarization and anonymizati...
+   Latency: 7865ms
+   Chunks: 5
+   Result ID: e9280334-a616-4430-a4c7-deb53934040d
+
+4. basic_rag + contextual_compression
+   Response: **Tools for Audio Data Anonymization**
+
+| Category | Tool | Key Features | Page |
+|----------|------|--------------|------|
+| **AI‑driven transcription → PII extraction** | **AssemblyAI** | Converts s...
+   Latency: 15426ms
+   Chunks: 5
+   Result ID: f87a35ee-6553-4791-81f6-b0752baa3bb2
+
+5. basic_rag + hyde + reranking
+   Response: **Tools for anonymizing audio data**
+
+| Tool | Key features (from the context) | Source |
+|------|--------------------------------|--------|
+| **PyAnnote** | Open‑source diarization framework built on...
+   Latency: 9765ms
+   Chunks: 5
+   Result ID: 0f99c1f0-3f52-4729-b2e1-083f3867d60b
+
+6. basic_rag + hyde + contextual_compression
+   Response: **Tools for Audio Data Anonymization**
+
+| Tool | Key Features | Notes |
+|------|--------------|-------|
+| **Private AI** | • Supports over 50 PII entities in 49 languages  <br>• Blurs faces and bleeps...
+   Latency: 15265ms
+   Chunks: 5
+   Result ID: 257848fa-a052-4bf6-bbc0-a9feb5853784
+
+7. basic_rag + reranking + contextual_compression
+   Response: **Tools for anonymizing personal data in audio files**
+
+| Category | Tool | Key Features | Page |
+|----------|------|--------------|------|
+| **AI‑driven transcription & redaction** | AssemblyAI | AI‑...
+   Latency: 18463ms
+   Chunks: 5
+   Result ID: 75b715c7-761d-4e90-8fd7-a41e81110ec7
+
+8. basic_rag + hyde + reranking + contextual_compression
+   Response: **Tools for audio data anonymization**
+
+| Category | Example tools (as listed in the context) | Source |
+|----------|------------------------------------------|--------|
+| **Open‑source speech‑process...
+   Latency: 20942ms
+   Chunks: 5
+   Result ID: e1ab558c-5edc-481f-ae96-d0fbd798c3c9
+
+9. fusion_retrieval
+   Response: **Tools for Audio Data Anonymization**
+
+| Tool | Primary Function | Contextual Reference |
+|------|------------------|----------------------|
+| **PyAnnote** | Open‑source speaker diarization library t...
+   Latency: 3896ms
+   Chunks: 5
+   Result ID: 3f3bb900-2656-4af6-a253-679ad2693711
+
+10. fusion_retrieval + hyde
+   Response: **Tools for Audio Data Anonymization**  
+
+| Tool | Key Features / Strengths | Regulatory Focus | Page Referenced |
+|------|--------------------------|------------------|-----------------|
+| **Private ...
+   Latency: 5277ms
+   Chunks: 5
+   Result ID: e2e8e2fd-7a6a-4bad-ac3a-21d52a490563
+
+11. fusion_retrieval + reranking
+   Response: **Narzędzia do anonimizacji danych audio** (wymienione w dostarczonym kontekście) to:
+
+| Narzędzie | Krótkie opisanie funkcji | Strona w kontekście |
+|-----------|-------------------------|-----------...
+   Latency: 6306ms
+   Chunks: 5
+   Result ID: f4111cf4-f007-493f-86f1-820d9bed84be
+
+12. fusion_retrieval + contextual_compression
+   Response: **Tools for Audio Data Anonymization**
+
+| Tool | Brief description | Source |
+|------|-------------------|--------|
+| **PyAnnote** | An open‑source library that uses PyTorch for speaker diarization an...
+   Latency: 16766ms
+   Chunks: 5
+   Result ID: 583f3ec0-44a1-4a01-9bb6-dae056b3b9e0
+
+13. fusion_retrieval + hyde + reranking
+   Response: **Narzędzia do anonimizacji danych audio**
+
+| Narzędzie | Główne cechy / zastosowania | Źródło |
+|-----------|----------------------------|--------|
+| **VIDIZMO Redactor** | Rozwiązanie do automatyczn...
+   Latency: 10273ms
+   Chunks: 5
+   Result ID: 723a9e17-4f92-4dae-bd20-31b47cf65544
+
+14. fusion_retrieval + hyde + contextual_compression
+   Response: **Tools for Audio Data Anonymization**
+
+| Tool | Key Features |
+|------|--------------|
+| **Microsoft Presidio** | Open‑source PII detection via APIs with customizable recognizers that can be applied ...
+   Latency: 12506ms
+   Chunks: 5
+   Result ID: 9b7f3cb2-b1da-4402-971e-4d751a813679
+
+15. fusion_retrieval + reranking + contextual_compression
+   Response: **Tools for audio‑data anonymization (as listed in the context)**  
+
+| Tool | Key features / approach | Source page |
+|------|------------------------|-------------|
+| **Speech Anonymization Toolkit (...
+   Latency: 17911ms
+   Chunks: 5
+   Result ID: 67148002-7ded-4657-bfc6-5bf6181552d6
+
+16. fusion_retrieval + hyde + reranking + contextual_compression
+   Response: **Tools for audio data anonymisation**
+
+| Tool | Key features & focus | Source |
+|------|---------------------|--------|
+| **VIDIZMO Redactor** | Bulk‑processing, automated redaction of sensitive audi...
+   Latency: 17663ms
+   Chunks: 5
+   Result ID: 96152d14-3912-4061-a8c8-a320fc317e0c
+
+17. self_rag
+   Response: Failed to execute query: SelfRAG.__init__() got an unexpected keyword argument 'document_id'. Please check your technique selection.
+   Latency: 6ms
+   Chunks: 0
+   Result ID: 6edde337-9dbf-456e-aec7-e7daf553b48a
+
+18. self_rag + fusion_retrieval
+   Response: Failed to execute query: SelfRAG.__init__() got an unexpected keyword argument 'document_id'. Please check your technique selection.
+   Latency: 4ms
+   Chunks: 0
+   Result ID: 747b89a4-c534-485c-8a94-428c73723705
+
+19. crag
+   Response: Failed to execute query: CRAG.__init__() got an unexpected keyword argument 'document_id'. Please check your technique selection.
+   Latency: 2ms
+   Chunks: 0
+   Result ID: 8cea0b4e-0ac9-4ff3-a71f-02b74e0bba9b
+
+20. crag + fusion_retrieval
+   Response: Failed to execute query: CRAG.__init__() got an unexpected keyword argument 'document_id'. Please check your technique selection.
+   Latency: 1ms
+   Chunks: 0
+   Result ID: 44e4d2af-1856-48ab-89f7-03fb13352ef4
+
+21. adaptive_retrieval
+   Response: Failed to execute query: . Please check your technique selection.
+   Latency: 4ms
+   Chunks: 0
+   Result ID: f6e6bf8a-49e5-4131-b574-83da6610504c
+
+================================================================================
+Performance Statistics
+================================================================================
+Average latency: 9003ms
+Min latency: 1ms
+Max latency: 20942ms
+
+================================================================================
+Summary: 21 successful, 0 failed out of 21 total
+================================================================================
