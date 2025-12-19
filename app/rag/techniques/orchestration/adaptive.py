@@ -98,7 +98,7 @@ Document: {doc}
 Relevance score (1-10):"""
 
 GENERATION_PROMPT = """Answer the question based on the provided context.
-Always respond in the same language as the question (e.g., if question is in Polish, answer in Polish).
+Always respond in the same language as the question.
 
 Context:
 {context}

@@ -37,8 +37,7 @@ SYSTEM_PROMPT = """You are a helpful assistant that answers questions based on t
 Use only the information from the context to answer. If the context doesn't contain enough information, say so.
 Always cite page numbers when referencing specific information.
 
-Important: Respond in the same language as the user's question. 
-If the question is in Polish, respond in Polish. If in English, respond in English."""
+Important: Respond in the same language as the user's question."""
 
 
 class StandardRAGPipeline:

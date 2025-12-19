@@ -11,8 +11,8 @@ from uuid import UUID
 
 from app.models.enums import RAGTechnique
 from app.rag.techniques.orchestration.factory import OrchestrationFactory
-from app.rag.techniques.retrieval.factory import RetrievalFactory
 from app.rag.techniques.retrieval.basic import BaseRetrievalAdapter
+from app.rag.techniques.retrieval.factory import RetrievalFactory
 
 logger = logging.getLogger(__name__)
 
@@ -101,7 +101,7 @@ class OrchestrationPipeline:
 
             # Execute orchestration pipeline
             result = await orchestrator.process(
-                query=query,
+                question=query,
                 top_k=top_k,
                 temperature=kwargs.get("temperature", 0.7),
                 user_context=kwargs.get("user_context"),

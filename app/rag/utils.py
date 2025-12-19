@@ -9,7 +9,7 @@ import logging
 from typing import Any, Type, TypeVar
 
 from langchain_core.language_models import BaseLanguageModel
-from langchain_core.output_parsers import JsonOutputParser, PydanticOutputParser
+from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, ValidationError
 
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T", bound=BaseModel)
 
 
-async def build_structured_chain_with_fallback(
+def build_structured_chain_with_fallback(
     llm: BaseLanguageModel,
     prompt_template: str,
     model_class: Type[T],
@@ -69,7 +69,7 @@ Do not include any text before or after the JSON."""
     enhanced_prompt = ChatPromptTemplate.from_template(enhanced_template)
 
     # Create chain with LLM and custom parsing
-    async def parse_json_response(response: str) -> T:
+    def parse_json_response(response: str) -> T:
         """Parse JSON response and validate against Pydantic model."""
         try:
             # Try to parse JSON directly
@@ -111,7 +111,7 @@ Do not include any text before or after the JSON."""
             else:
                 content = str(response)
             # Parse JSON
-            return await self.parser(content)
+            return self.parser(content)
 
         def __or__(self, other):
             """Support pipe operator for compatibility."""

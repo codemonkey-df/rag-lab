@@ -61,7 +61,7 @@ Evaluate whether this document is relevant to the question and provide reasoning
 
 
 GENERATION_PROMPT = """Answer the question based on the provided context. If the context is not relevant or insufficient, say so.
-Always respond in the same language as the question (e.g., if question is in Polish, answer in Polish).
+Always respond in the same language as the question.
 
 Question: {question}
 

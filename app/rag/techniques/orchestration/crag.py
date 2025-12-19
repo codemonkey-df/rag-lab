@@ -28,8 +28,8 @@ from app.rag.techniques.orchestration.models.crag_models import (
     QueryRewriterInput,
     RelevanceScoreInput,
 )
-from app.services.web_search import web_search
 from app.rag.utils import build_structured_chain_with_fallback
+from app.services.web_search import web_search
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +55,7 @@ Document: {document}
 Key points:"""
 
 WEB_SEARCH_PROMPT = """Answer the question using web search results.
-Always respond in the same language as the question (e.g., if question is in Polish, answer in Polish).
+Always respond in the same language as the question.
 
 Question: {question}
 
@@ -65,7 +65,7 @@ Web Search Results:
 Answer:"""
 
 COMBINED_ANSWER_PROMPT = """Answer the question based on the combined knowledge from retrieved documents and web search.
-Always respond in the same language as the question (e.g., if question is in Polish, answer in Polish).
+Always respond in the same language as the question.
 
 Question: {question}
 
@@ -77,7 +77,7 @@ Sources: {sources}
 Answer:"""
 
 DOCUMENT_ANSWER_PROMPT = """Answer the question based on the provided context.
-Always respond in the same language as the question (e.g., if question is in Polish, answer in Polish).
+Always respond in the same language as the question.
 
 Question: {question}
 

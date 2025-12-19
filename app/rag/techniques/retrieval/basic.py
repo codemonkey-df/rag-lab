@@ -106,7 +106,9 @@ class BaseRetrievalAdapter(BaseRetriever):
     like SelfRAG and CRAG.
     """
 
-    def __init__(self, base_retrieval: BaseRetrieval, document_id: UUID, top_k: int = 5):
+    def __init__(
+        self, base_retrieval: BaseRetrieval, document_id: UUID, top_k: int = 5
+    ):
         """
         Initialize the adapter.
 
