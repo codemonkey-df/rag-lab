@@ -164,10 +164,13 @@ class IngestionPipeline:
             }
 
         except Exception as e:
+            error_msg = str(e)
             logger.error(
-                f"Error ingesting document {self.document_id}: {e}", exc_info=True
+                f"Error ingesting document {self.document_id}: {error_msg}",
+                exc_info=True,
             )
             doc.status = "failed"
+            doc.error = error_msg
             self.repo.update(doc)
             raise
 
@@ -251,6 +254,9 @@ class DocumentIngestionService:
         # Check if strategy should run async
         if strategy.supports_async_execution() and background_tasks:
             # Run in background
+            logger.info(
+                f"Running ingestion asynchronously with {strategy_name} strategy"
+            )
             background_tasks.add_task(
                 self._run_ingestion_async,
                 pipeline,
@@ -298,7 +304,14 @@ class DocumentIngestionService:
         try:
             await pipeline.ingest(file_path, config)
         except Exception as e:
-            logger.error(f"Async ingestion failed: {e}", exc_info=True)
+            error_msg = str(e)
+            logger.error(f"Async ingestion failed: {error_msg}", exc_info=True)
+            # Update document status and error message
+            doc = pipeline.repo.get_by_id(pipeline.document_id)
+            if doc:
+                doc.status = "failed"
+                doc.error = error_msg
+                pipeline.repo.update(doc)
 
     def get_available_strategies(self) -> Dict[str, Dict[str, Any]]:
         """
@@ -330,7 +343,7 @@ class DocumentIngestionService:
             - error_message: None if valid, error description if invalid
         """
         try:
-            strategy = self.factory.create(strategy_name, **config)
+            self.factory.create(strategy_name, **config)
             return True, None
         except ValueError as e:
             return False, str(e)

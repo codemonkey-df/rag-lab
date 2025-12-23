@@ -91,7 +91,6 @@ def get_parent_document_retriever(
     """
     vectorstore = get_chroma_collection(document_id)
     docstore = get_parent_document_store(document_id)
-    embeddings = get_embeddings()
 
     # Create child splitter (must match ingestion settings)
     child_splitter = RecursiveCharacterTextSplitter(

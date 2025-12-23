@@ -15,7 +15,7 @@ class QueryCategory(BaseModel):
 
     category: Literal["Factual", "Analytical", "Opinion", "Contextual"] = Field(
         description="The category of the query: Factual, Analytical, Opinion, or Contextual",
-        example="Factual",
+        json_schema_extra={"example": "Factual"},
     )
 
 
@@ -26,7 +26,7 @@ class RelevanceScore(BaseModel):
         description="The relevance score of the document to the query (1-10 scale)",
         ge=1.0,
         le=10.0,
-        example=8.0,
+        json_schema_extra={"example": 8.0},
     )
 
 
@@ -35,7 +35,12 @@ class SubQueries(BaseModel):
 
     sub_queries: List[str] = Field(
         description="List of sub-queries for comprehensive analysis",
-        example=["What is the population of New York?", "What is the GDP of New York?"],
+        json_schema_extra={
+            "example": [
+                "What is the population of New York?",
+                "What is the GDP of New York?",
+            ]
+        },
     )
 
 
@@ -44,7 +49,7 @@ class SelectedIndices(BaseModel):
 
     indices: List[int] = Field(
         description="Indices of selected documents",
-        example=[0, 1, 2, 3],
+        json_schema_extra={"example": [0, 1, 2, 3]},
     )
 
 
@@ -53,5 +58,5 @@ class Viewpoints(BaseModel):
 
     viewpoints: List[str] = Field(
         description="List of distinct viewpoints or perspectives on the topic",
-        example=["Viewpoint 1: ...", "Viewpoint 2: ..."],
+        json_schema_extra={"example": ["Viewpoint 1: ...", "Viewpoint 2: ..."]},
     )

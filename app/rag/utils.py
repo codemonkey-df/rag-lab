@@ -18,6 +18,55 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T", bound=BaseModel)
 
 
+def _generate_example_from_model(model_class: Type[BaseModel]) -> dict:
+    """
+    Generate a concrete example from a Pydantic model for use in prompts.
+
+    Args:
+        model_class: Pydantic model class
+
+    Returns:
+        Dictionary with example values based on field descriptions and examples
+    """
+    example = {}
+    schema = model_class.model_json_schema()
+
+    if "properties" in schema:
+        for field_name, field_info in schema["properties"].items():
+            # Check for example in json_schema_extra first
+            if (
+                "json_schema_extra" in field_info
+                and "example" in field_info["json_schema_extra"]
+            ):
+                example[field_name] = field_info["json_schema_extra"]["example"]
+            # Check for example at field level
+            elif "example" in field_info:
+                example[field_name] = field_info["example"]
+            # Generate based on type
+            elif field_info.get("type") == "string":
+                example[field_name] = f"example_{field_name}"
+            elif field_info.get("type") == "integer":
+                example[field_name] = 0
+            elif field_info.get("type") == "number":
+                example[field_name] = 0.0
+            elif field_info.get("type") == "boolean":
+                example[field_name] = True
+            elif field_info.get("type") == "array":
+                items = field_info.get("items", {})
+                if items.get("type") == "string":
+                    example[field_name] = ["example_item_1", "example_item_2"]
+                elif items.get("type") == "integer":
+                    example[field_name] = [0, 1]
+                else:
+                    example[field_name] = []
+            elif field_info.get("type") == "object":
+                example[field_name] = {}
+            else:
+                example[field_name] = None
+
+    return example
+
+
 def build_structured_chain_with_fallback(
     llm: BaseLanguageModel,
     prompt_template: str,
@@ -51,16 +100,29 @@ def build_structured_chain_with_fallback(
 
     # Fallback: Use JSON parsing approach
     # Create an enhanced prompt that asks for JSON output
+    # Generate example from model
+    example = _generate_example_from_model(model_class)
+    example_str = json.dumps(example, indent=2)
+
     enhanced_template = f"""{prompt_template}
 
-Respond ONLY with valid JSON that matches this schema:
+IMPORTANT: You must respond with valid JSON data, NOT a schema description.
+
+Return the actual data in this exact format:
+{{example}}
+
+The JSON schema is:
 {{json_schema}}
 
-Do not include any text before or after the JSON."""
+Return ONLY the JSON data matching the example format above. Do not include any text before or after the JSON."""
 
     # Get the JSON schema from the Pydantic model
     schema = model_class.model_json_schema()
     schema_str = json.dumps(schema, indent=2)
+    # Escape curly braces in schema and example to prevent LangChain from interpreting them as template variables
+    schema_str = schema_str.replace("{", "{{").replace("}", "}}")
+    example_str = example_str.replace("{", "{{").replace("}", "}}")
+    enhanced_template = enhanced_template.replace("{example}", example_str)
     enhanced_template = enhanced_template.replace("{json_schema}", schema_str)
 
     # Build parser that handles both raw JSON and strings containing JSON
@@ -83,11 +145,32 @@ Do not include any text before or after the JSON."""
                     raise ValueError("No JSON found in response")
                 data = json.loads(response[start_idx:end_idx])
 
+            # Log parsed data before validation for debugging
+            logger.debug(
+                f"Parsed JSON for {model_class.__name__}: {json.dumps(data, indent=2)}"
+            )
+
             # Validate against Pydantic model
             return model_class.model_validate(data)
         except (json.JSONDecodeError, ValidationError) as e:
-            logger.error(f"JSON parsing/validation failed: {e}")
-            logger.debug(f"Raw response: {response}")
+            logger.error(
+                f"JSON parsing/validation failed for {model_class.__name__}: {e}"
+            )
+            logger.error(f"Raw LLM response (first 500 chars): {response[:500]}")
+            # Try to log what was parsed if JSON parsing succeeded but validation failed
+            try:
+                if response.startswith("{"):
+                    parsed = json.loads(response)
+                else:
+                    start_idx = response.find("{")
+                    end_idx = response.rfind("}") + 1
+                    if start_idx != -1 and end_idx > 0:
+                        parsed = json.loads(response[start_idx:end_idx])
+                        logger.error(
+                            f"Parsed JSON (before validation): {json.dumps(parsed, indent=2)}"
+                        )
+            except Exception as parse_error:
+                logger.error(f"Could not parse JSON for debugging: {parse_error}")
             raise
 
     # Return a chain-like object that can be used with |
@@ -152,15 +235,28 @@ def build_structured_chain(
         )
 
     # Fallback: Use JSON parsing approach
+    # Generate example from model
+    example = _generate_example_from_model(model_class)
+    example_str = json.dumps(example, indent=2)
+
     enhanced_template = f"""{prompt_template}
 
-Respond ONLY with valid JSON that matches this schema:
+IMPORTANT: You must respond with valid JSON data, NOT a schema description.
+
+Return the actual data in this exact format:
+{{example}}
+
+The JSON schema is:
 {{json_schema}}
 
-Do not include any text before or after the JSON."""
+Return ONLY the JSON data matching the example format above. Do not include any text before or after the JSON."""
 
     schema = model_class.model_json_schema()
     schema_str = json.dumps(schema, indent=2)
+    # Escape curly braces in schema and example to prevent LangChain from interpreting them as template variables
+    schema_str = schema_str.replace("{", "{{").replace("}", "}}")
+    example_str = example_str.replace("{", "{{").replace("}", "}}")
+    enhanced_template = enhanced_template.replace("{example}", example_str)
     enhanced_template = enhanced_template.replace("{json_schema}", schema_str)
 
     enhanced_prompt = ChatPromptTemplate.from_template(enhanced_template)
@@ -180,11 +276,32 @@ Do not include any text before or after the JSON."""
                     raise ValueError("No JSON found in response")
                 data = json.loads(response[start_idx:end_idx])
 
+            # Log parsed data before validation for debugging
+            logger.debug(
+                f"Parsed JSON for {model_class.__name__}: {json.dumps(data, indent=2)}"
+            )
+
             # Validate against Pydantic model
             return model_class.model_validate(data)
         except (json.JSONDecodeError, ValidationError) as e:
-            logger.error(f"JSON parsing/validation failed: {e}")
-            logger.debug(f"Raw response: {response}")
+            logger.error(
+                f"JSON parsing/validation failed for {model_class.__name__}: {e}"
+            )
+            logger.error(f"Raw LLM response (first 500 chars): {response[:500]}")
+            # Try to log what was parsed if JSON parsing succeeded but validation failed
+            try:
+                if response.startswith("{"):
+                    parsed = json.loads(response)
+                else:
+                    start_idx = response.find("{")
+                    end_idx = response.rfind("}") + 1
+                    if start_idx != -1 and end_idx > 0:
+                        parsed = json.loads(response[start_idx:end_idx])
+                        logger.error(
+                            f"Parsed JSON (before validation): {json.dumps(parsed, indent=2)}"
+                        )
+            except Exception as parse_error:
+                logger.error(f"Could not parse JSON for debugging: {parse_error}")
             raise
 
     class StructuredOutputChain:

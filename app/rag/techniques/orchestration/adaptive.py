@@ -59,6 +59,9 @@ Respond in the same language as the query.
 
 Query: {query}
 
+Generate a list of {k} distinct sub-questions that will help provide a comprehensive answer to the main query.
+Each sub-question should focus on a specific aspect of the topic.
+
 Sub-questions:"""
 
 DIVERSITY_SELECTION_PROMPT = """Select the most diverse and relevant set of {k} documents for the query: '{query}'
@@ -282,10 +285,25 @@ class AnalyticalRetrievalStrategy(BaseRetrievalStrategy):
         logger.info("Retrieving analytical query")
 
         # Step 1: Generate sub-queries using LLM
-        sub_queries_chain = self._build_structured_chain(SUB_QUERIES_PROMPT, SubQueries)
-        result = await sub_queries_chain.ainvoke({"query": query, "k": self.top_k})
-        sub_queries = result.sub_queries
-        logger.info(f"Generated sub-queries: {sub_queries}")
+        try:
+            sub_queries_chain = self._build_structured_chain(
+                SUB_QUERIES_PROMPT, SubQueries
+            )
+            result = await sub_queries_chain.ainvoke({"query": query, "k": self.top_k})
+            sub_queries = result.sub_queries
+            logger.info(f"Generated sub-queries: {sub_queries}")
+
+            # Validate that we got at least one sub-query
+            if not sub_queries or len(sub_queries) == 0:
+                logger.warning(
+                    "No sub-queries generated, falling back to original query"
+                )
+                sub_queries = [query]
+        except Exception as e:
+            logger.error(f"Error generating sub-queries: {e}", exc_info=True)
+            logger.warning("Falling back to using original query as single sub-query")
+            # Fallback: Use the original query as a single sub-query
+            sub_queries = [query]
 
         # Step 2: Retrieve documents for each sub-query
         retrieval = HybridRetrieval(

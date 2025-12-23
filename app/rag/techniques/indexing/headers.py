@@ -16,6 +16,7 @@ from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
+from app.core.config import get_settings
 from app.core.dependencies import get_llm
 from app.rag.techniques.indexing.base import BaseIndexingStrategy
 from app.rag.techniques.indexing.semantic import SemanticStrategy
@@ -23,6 +24,7 @@ from app.rag.techniques.indexing.standard import (
     StandardStrategy,
     add_line_numbers_to_chunks,
 )
+from app.rag.techniques.indexing.utils import process_items_in_parallel
 from app.services.vectorstore import get_chroma_collection
 
 logger = logging.getLogger(__name__)
@@ -139,27 +141,36 @@ class HeadersStrategy(BaseIndexingStrategy):
         """
         total = len(chunks)
         progress_callback = config.get("progress_callback")
+        settings = get_settings()
 
-        for i, chunk in enumerate(chunks):
-            try:
-                # Generate header
-                header = await generate_chunk_header(chunk.page_content)
+        async def process_chunk_header(chunk: Document, index: int):
+            """Process a single chunk to generate header."""
+            header = await generate_chunk_header(chunk.page_content)
+            chunk.metadata["header"] = header
+            chunk.page_content = f"[{header}]\n\n{chunk.page_content}"
+            return chunk
 
-                # Add to metadata
-                chunk.metadata["header"] = header
+        # Process chunks in parallel
+        results = await process_items_in_parallel(
+            items=chunks,
+            process_func=process_chunk_header,
+            max_concurrent=settings.max_concurrent_headers,
+            item_name="chunk",
+        )
 
-                # Prepend header to content
-                chunk.page_content = f"[{header}]\n\n{chunk.page_content}"
+        # Process results and update progress
+        for chunk, index, error in results:
+            if error is not None:
+                logger.warning(f"Failed to generate header for chunk {index}: {error}")
+                # Continue with next chunk (chunk remains unchanged)
+            else:
+                logger.debug(
+                    f"Generated header: {chunk.metadata.get('header', '')[:30]}..."
+                )
 
-                # Update progress
-                if progress_callback:
-                    progress_callback((i + 1) / total * 100)
-
-                logger.debug(f"Generated header: {header[:30]}...")
-
-            except Exception as e:
-                logger.warning(f"Failed to generate header for chunk {i}: {e}")
-                # Continue with next chunk
+            # Update progress
+            if progress_callback:
+                progress_callback((index + 1) / total * 100)
 
         # Add line numbers
         chunks = add_line_numbers_to_chunks(chunks)

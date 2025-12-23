@@ -107,6 +107,30 @@ class TechniqueValidator:
                 "Cannot combine Self-RAG + CRAG (logic collision - both have critique loops)"
             )
 
+        # Layer 3: CRAG/Self-RAG can only use Basic RAG or Fusion Retrieval
+        if RAGTechnique.CRAG in layer3 or RAGTechnique.SELF_RAG in layer3:
+            allowed_layer2 = {RAGTechnique.BASIC_RAG, RAGTechnique.FUSION_RETRIEVAL}
+            incompatible_layer2 = [
+                t for t in layer2
+                if t not in allowed_layer2
+            ]
+            if incompatible_layer2:
+                incompatible_names = [t.value.replace("_", " ").title() for t in incompatible_layer2]
+                technique_name = "CRAG" if RAGTechnique.CRAG in layer3 else "Self-RAG"
+                errors.append(
+                    f"{technique_name} can only use Basic RAG or Fusion Retrieval. "
+                    f"Other Layer 2 techniques ({', '.join(incompatible_names)}) are not supported."
+                )
+
+        # Layer 3: Adaptive Retrieval is standalone
+        if RAGTechnique.ADAPTIVE_RETRIEVAL in layer3:
+            if layer2:
+                layer2_names = [t.value.replace("_", " ").title() for t in layer2]
+                errors.append(
+                    f"Adaptive Retrieval is a standalone technique and cannot be combined with any Layer 2 techniques. "
+                    f"Found: {', '.join(layer2_names)}"
+                )
+
         # Warnings for slow techniques
         if RAGTechnique.SEMANTIC_CHUNKING in layer1:
             warnings.append(

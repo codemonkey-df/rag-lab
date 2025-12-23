@@ -26,4 +26,30 @@ dependencies = [
     "python-multipart>=0.0.6",
     "python-dotenv>=1.0.0",
     "pymupdf>=1.23.0",
+    "pytest>=7.4.0",
+    "reportlab>=4.4.7",
+    "pytest-asyncio>=1.3.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "standard: marks tests for standard strategy",
+    "semantic: marks tests for semantic strategy",
+    "headers: marks tests for headers strategy",
+    "parent_document: marks tests for parent_document strategy",
+    "proposition: marks tests for proposition strategy",
+    "unit: marks unit tests (with mocks)",
+    "integration: marks integration tests (live API)",
+    "asyncio: marks tests as async (pytest-asyncio)",
+]
+asyncio_mode = "auto"
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
 ]

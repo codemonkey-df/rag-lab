@@ -7,7 +7,15 @@ import shutil
 from pathlib import Path
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    UploadFile,
+)
 from sqlmodel import Session
 
 from app.core.config import get_settings
@@ -28,10 +36,10 @@ ingestion_service = DocumentIngestionService()
 @router.post("/upload")
 async def upload_document(
     file: UploadFile = File(...),
-    chunk_size: int = 1024,
-    chunk_overlap: int = 200,
-    chunking_strategy: str = "standard",
-    base_chunking: str = "standard",  # For headers strategy
+    chunk_size: int = Form(1024),
+    chunk_overlap: int = Form(200),
+    chunking_strategy: str = Form("standard"),
+    base_chunking: str = Form("standard"),  # For headers strategy
     session_id: UUID | None = None,
     background_tasks: BackgroundTasks = BackgroundTasks(),
     db_session: Session = Depends(get_session),
@@ -159,7 +167,7 @@ async def delete_document(
     """Delete document, Chroma collection, and BM25 index."""
     repo = DocumentRepository(db_session)
     doc = repo.get_by_id(doc_id)
-    if not doc: 
+    if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
 
     # Delete Chroma collection

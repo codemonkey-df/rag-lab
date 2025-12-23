@@ -35,10 +35,6 @@ class Settings(BaseSettings):
     max_file_size_mb: int = 50
     upload_dir: str = "./uploads"
 
-    # Web Search
-    tavily_api_key: str | None = None
-    use_tavily: bool = True
-
     # Logging
     log_level: str = "INFO"
 
@@ -54,18 +50,16 @@ class Settings(BaseSettings):
     default_chunk_overlap: int = 200
 
     # Proposition Chunking Defaults
-    proposition_initial_chunk_size: int = (
-        200  # Initial chunk size for proposition generation
-    )
     proposition_chunk_overlap: int = 50  # Overlap for initial chunking
     proposition_quality_threshold_accuracy: int = 7  # Minimum accuracy score (1-10)
     proposition_quality_threshold_clarity: int = 7  # Minimum clarity score (1-10)
-    proposition_quality_threshold_completeness: int = (
-        7  # Minimum completeness score (1-10)
-    )
-    proposition_quality_threshold_conciseness: int = (
-        7  # Minimum conciseness score (1-10)
-    )
+    proposition_quality_threshold_completeness: int = 7  # Minimum completeness score (1-10)
+    proposition_quality_threshold_conciseness: int = 7  # Minimum conciseness score (1-10)
+
+    # Concurrency Settings for Parallel Indexing
+    max_concurrent_chunks: int = 4  # Parallel chunk processing for proposition strategy
+    max_concurrent_evaluations: int = 4  # Parallel proposition evaluation
+    max_concurrent_headers: int = 4  # Parallel header generation for headers strategy
 
     model_config = SettingsConfigDict(
         env_file=".env", case_sensitive=False, extra="ignore"

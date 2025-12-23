@@ -5,6 +5,7 @@ Single entry point for all RAG query execution.
 Orchestrates pipeline selection and execution based on technique configuration.
 """
 
+import asyncio
 import json
 import logging
 import time
@@ -16,9 +17,10 @@ from sqlmodel import Session
 from app.db.models import QueryResult
 from app.db.repositories import QueryResultRepository
 from app.models.enums import LAYER_3_TECHNIQUES, RAGTechnique
-from app.models.schemas import ChunkInfo, QueryResponse
+from app.models.schemas import ChunkInfo, QueryResponse, ComparisonResponse, ComparisonMetrics
 from app.rag.pipelines.orchestration_pipeline import OrchestrationPipeline
 from app.rag.pipelines.standard_pipeline import StandardRAGPipeline
+from app.services.scoring import calculate_semantic_variance
 from app.services.tracing import (
     capture_adaptive_metadata,
     capture_crag_metadata,
@@ -277,6 +279,121 @@ class RAGQueryService:
                 retrieved_chunks=[],
                 result_id=uuid4(),
                 scores={"latency_ms": latency_ms, "token_count_est": 0},
+            )
+
+    async def execute_parallel_comparison(
+        self,
+        query: str,
+        document_id: UUID,
+        techniques_1: List[RAGTechnique],
+        techniques_2: List[RAGTechnique],
+        session_id: UUID,
+        db_session: Session,
+        query_params_1: Dict[str, Any] = None,
+        query_params_2: Dict[str, Any] = None,
+    ) -> ComparisonResponse:
+        """
+        Execute two RAG queries in parallel with different techniques and return comparison.
+
+        Args:
+            query: User query (same for both pipelines)
+            document_id: UUID of document to query
+            techniques_1: List of RAGTechnique values for pipeline 1
+            techniques_2: List of RAGTechnique values for pipeline 2
+            session_id: UUID of the session
+            db_session: Database session
+            query_params_1: Query parameters for pipeline 1
+            query_params_2: Query parameters for pipeline 2
+
+        Returns:
+            ComparisonResponse with results from both pipelines and metrics
+        """
+        logger.info("Starting parallel query comparison")
+
+        if query_params_1 is None:
+            query_params_1 = {}
+        if query_params_2 is None:
+            query_params_2 = {}
+
+        try:
+            # Execute both queries in parallel
+            result_1_task = self.execute_query_with_persistence(
+                query=query,
+                document_id=document_id,
+                techniques=techniques_1,
+                session_id=session_id,
+                db_session=db_session,
+                **query_params_1,
+            )
+
+            result_2_task = self.execute_query_with_persistence(
+                query=query,
+                document_id=document_id,
+                techniques=techniques_2,
+                session_id=session_id,
+                db_session=db_session,
+                **query_params_2,
+            )
+
+            # Execute in parallel
+            result_1, result_2 = await asyncio.gather(result_1_task, result_2_task)
+
+            # Calculate semantic similarity
+            try:
+                semantic_similarity = await calculate_semantic_variance(
+                    result_1.response, result_2.response
+                )
+            except Exception as e:
+                logger.error(f"Error calculating semantic variance: {e}", exc_info=True)
+                semantic_similarity = 0.5  # Default middle value if calculation fails
+
+            # Calculate latency difference
+            latency_1 = result_1.scores.get("latency_ms", 0)
+            latency_2 = result_2.scores.get("latency_ms", 0)
+            latency_diff_ms = abs(latency_1 - latency_2)
+
+            # Interpret similarity
+            if semantic_similarity > 0.8:
+                interpretation = "Very similar"
+            elif semantic_similarity > 0.6:
+                interpretation = "Similar"
+            elif semantic_similarity > 0.4:
+                interpretation = "Different"
+            else:
+                interpretation = "Very different"
+
+            # Build comparison metrics
+            comparison = ComparisonMetrics(
+                semantic_similarity=float(semantic_similarity),
+                latency_diff_ms=latency_diff_ms,
+                interpretation=interpretation,
+            )
+
+            logger.info("Parallel query comparison completed successfully")
+
+            return ComparisonResponse(
+                pipeline_1_result=result_1,
+                pipeline_2_result=result_2,
+                comparison=comparison,
+            )
+
+        except Exception as e:
+            logger.error(f"Error in execute_parallel_comparison: {e}", exc_info=True)
+            # Return error response with empty results
+            error_response = QueryResponse(
+                response=f"Comparison failed: {str(e)}",
+                retrieved_chunks=[],
+                result_id=uuid4(),
+                scores={"latency_ms": 0, "token_count_est": 0},
+            )
+            return ComparisonResponse(
+                pipeline_1_result=error_response,
+                pipeline_2_result=error_response,
+                comparison=ComparisonMetrics(
+                    semantic_similarity=0.0,
+                    latency_diff_ms=0.0,
+                    interpretation="Comparison failed",
+                ),
             )
 
 

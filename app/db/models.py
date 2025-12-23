@@ -1,14 +1,17 @@
 """
 SQLModel database models
 """
-from sqlmodel import SQLModel, Field
-from uuid import UUID, uuid4
+
 from datetime import datetime
 from typing import Optional
+from uuid import UUID, uuid4
+
+from sqlmodel import Field, SQLModel
 
 
 class Session(SQLModel, table=True):
     """Session model for grouping documents and queries"""
+
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     last_activity: datetime = Field(default_factory=datetime.utcnow)
@@ -16,6 +19,7 @@ class Session(SQLModel, table=True):
 
 class Document(SQLModel, table=True):
     """Document model for uploaded PDFs"""
+
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     session_id: UUID = Field(foreign_key="session.id")
     filename: str
@@ -29,10 +33,12 @@ class Document(SQLModel, table=True):
     embedding_dimension: int = Field(default=768)  # Nomic default
     uploaded_at: datetime = Field(default_factory=datetime.utcnow)
     processed_at: Optional[datetime] = None
+    error: Optional[str] = None  # Error message if processing failed
 
 
 class QueryResult(SQLModel, table=True):
     """Query result model with advanced scoring"""
+
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     session_id: UUID = Field(foreign_key="session.id")
     document_id: UUID = Field(foreign_key="document.id")
@@ -41,7 +47,9 @@ class QueryResult(SQLModel, table=True):
     # Metrics (inline calculation)
     latency_ms: float
     token_count_est: int  # Estimate: len(prompt) / 4
-    semantic_variance: Optional[float] = None  # Score (0-1) comparing similarity to baseline
+    semantic_variance: Optional[float] = (
+        None  # Score (0-1) comparing similarity to baseline
+    )
     # JSON Blobs
     techniques_used: str  # JSON list of Layer 2 & 3 techniques
     query_params: str  # JSON: top_k, bm25_weight, temperature, etc.
